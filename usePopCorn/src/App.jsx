@@ -11,10 +11,26 @@ const average = arr =>
 export default function App() {
   const [query, setQuery] = useState('');
   const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [error, setError] = useState('');
+  // const [watched, setWatched] = useState([]);
+  const [watched, setWatched] = useState(() => {
+    const storeValue = localStorage.getItem('watched');
+    return JSON.parse(storeValue);
+  });
+
+  function handleSelectedMovies(id) {
+    setSelectedId(selectedId => (selectedId === id ? null : id));
+  }
+
+  function handleAddWatchededMovies(movie) {
+    setWatched(watched => [...watched, movie]);
+  }
+
+  function handleDeleteWatchedMovie(id) {
+    setWatched(watched => watched.filter(watch => watch.imdbID !== id));
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -52,17 +68,10 @@ export default function App() {
     return () => controller.abort();
   }, [query]);
 
-  function handleSelectedMovies(id) {
-    setSelectedId(selectedId => (selectedId === id ? null : id));
-  }
+  useEffect(() => {
+    localStorage.setItem('watched', JSON.stringify(watched));
+  }, [watched]);
 
-  function handleAddWatchededMovies(movie) {
-    setWatched(watched => [...watched, movie]);
-  }
-
-  function handleDeleteWatchedMovie(id) {
-    setWatched(watched => watched.filter(watch => watch.imdbID !== id));
-  }
   return (
     <>
       <NavBar query={query} setQuery={setQuery} movies={movies} />
@@ -361,15 +370,15 @@ function MoviesSummary({ watched }) {
           <span>
             {Number.isInteger(+avgImdbRating)
               ? avgImdbRating
-              : Number(avgImdbRating.toFixed(1))}
+              : Number(avgImdbRating?.toFixed(1))}
           </span>
         </p>
         <p>
           <span>🌟</span>
           <span>
-            {Number.isInteger(+avgUserRating)
+            {Number.isInteger(avgUserRating)
               ? avgUserRating
-              : Number(avgUserRating.toFixed(1))}
+              : Number(avgUserRating?.toFixed(1))}
           </span>
         </p>
         <p>
