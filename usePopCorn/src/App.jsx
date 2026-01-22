@@ -4,22 +4,20 @@ import StarRating from './StarRating';
 import { Loader } from './components/Loader';
 import { Button } from './components/Button';
 import { ErrorMessage } from './components/ErrorMessage';
+import { useMovies } from './hooks/useMovies';
 
 const average = arr =>
   arr?.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
 export default function App() {
   const [query, setQuery] = useState('');
-  const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const [error, setError] = useState('');
   // const [watched, setWatched] = useState([]);
   const [watched, setWatched] = useState(() => {
     const storeValue = localStorage.getItem('watched');
-    return JSON.parse(storeValue);
+    return JSON.parse(storeValue) || [];
   });
-
+  const { movies, error, isLoading } = useMovies(query);
   function handleSelectedMovies(id) {
     setSelectedId(selectedId => (selectedId === id ? null : id));
   }
@@ -33,42 +31,6 @@ export default function App() {
   }
 
   useEffect(() => {
-    const controller = new AbortController();
-    async function fetchMovies() {
-      try {
-        setError('');
-        setLoading(true);
-        const res = await fetch(
-          `https://www.omdbapi.com/?apikey=12dc7873&s=${query}`,
-          { signal: controller.signal },
-        );
-
-        if (!res.ok) throw new Error('⛔ Something Went Wrong');
-        const data = await res.json();
-        if (data.Response === 'False') throw new Error('Movies Not Found');
-
-        setMovies(data.Search);
-        setError('');
-      } catch (err) {
-        if (err.name !== 'AbortError') setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (query.length < 3) {
-      setMovies([]);
-      setError('');
-      setSelectedId(null);
-      return;
-    }
-
-    fetchMovies();
-
-    return () => controller.abort();
-  }, [query]);
-
-  useEffect(() => {
     localStorage.setItem('watched', JSON.stringify(watched));
   }, [watched]);
 
@@ -79,7 +41,7 @@ export default function App() {
         <Box>
           <MovieLists
             movies={movies}
-            loading={loading}
+            isLoading={isLoading}
             error={error}
             onSelectedId={handleSelectedMovies}
           />
@@ -133,14 +95,14 @@ function Box({ children }) {
   return <div className="box">{children}</div>;
 }
 
-function MovieLists({ loading, error, movies, onSelectedId }) {
+function MovieLists({ isLoading, error, movies, onSelectedId }) {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
     <>
-      {loading && <Loader />}
+      {isLoading && <Loader />}
       {error && <ErrorMessage message={error} />}
-      {!loading && !error && (
+      {!isLoading && !error && (
         <>
           <Button onClick={() => setIsOpen(open => !open)}>
             {isOpen ? '-' : '+'}
@@ -185,7 +147,7 @@ function MovieDetails({
   watched,
 }) {
   const [movie, setMovie] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isisLoading, setIsisLoading] = useState(false);
   const [error, setError] = useState('');
   const [userRating, setUserRating] = useState('');
   let isWatched = watched?.find(
@@ -206,7 +168,7 @@ function MovieDetails({
   useEffect(() => {
     async function fetchMovieDetails() {
       try {
-        setIsLoading(true);
+        setIsisLoading(true);
         const res = await fetch(
           `https://www.omdbapi.com/?apikey=12dc7873&i=${selectedId}`,
         );
@@ -217,7 +179,7 @@ function MovieDetails({
       } catch (err) {
         setError(err.message);
       } finally {
-        setIsLoading(false);
+        setIsisLoading(false);
       }
     }
 
@@ -255,9 +217,9 @@ function MovieDetails({
   }, [title]);
   return (
     <div className="details">
-      {isLoading && <Loader />}
+      {isisLoading && <Loader />}
       {error && <ErrorMessage message={error} />}
-      {!isLoading && !error && (
+      {!isisLoading && !error && (
         <>
           <header>
             <button className="btn-back" onClick={() => setSelectedId(null)}>
