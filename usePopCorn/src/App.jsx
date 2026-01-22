@@ -6,6 +6,7 @@ import { Button } from './components/Button';
 import { ErrorMessage } from './components/ErrorMessage';
 import { useMovies } from './hooks/useMovies';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useKey } from './hooks/useKey';
 
 const average = arr =>
   arr?.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -180,15 +181,7 @@ function MovieDetails({
     fetchMovieDetails();
   }, [selectedId]);
 
-  useEffect(() => {
-    function callBack(e) {
-      if (e.code === 'Escape') setSelectedId(null);
-      console.log('Closing');
-    }
-
-    document.addEventListener('keydown', callBack);
-    return () => document.removeEventListener('keydown', callBack);
-  }, [setSelectedId]);
+  useKey('Escape', setSelectedId);
 
   function handleAddMovie() {
     const newMovie = {
